@@ -1,0 +1,20 @@
+{
+  "name": "cleanup",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cli.js",
+  "bin": {
+    "clean-project": "cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "depcheck": "^1.4.6",
+    "glob": "^10.3.10",
+    "react": "^17.0.2"
+  }
+}
