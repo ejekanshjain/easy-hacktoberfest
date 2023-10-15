@@ -45,10 +45,10 @@ function computeTime(sequence, items) {
 }
 
 function main() {
+  console.time('main')
   const items = [
     [0.23, 0.19, 0.19, 0.19, 1, 0.35],
     [0.35, 0.29, 0.29, 0.1, 1, 0.53]
-    // [0.24, 0.12, 0.56, 0.5, 0.42, 0.23]
   ]
 
   const deadline = 7
@@ -75,6 +75,7 @@ function main() {
 
   console.log('Best sequence:', bestSequence, 'Time:', min)
   console.log('Start Date:', Math.floor(deadlineBeforeAssembly - min))
+  console.timeEnd('main')
 }
 
 main()
