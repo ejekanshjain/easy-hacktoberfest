@@ -82,7 +82,6 @@ func main() {
 			min = time
 			bestSequence = permutation
 		}
-		break
 	}
 
 	fmt.Println("Best sequence:", bestSequence, "Time:", min)

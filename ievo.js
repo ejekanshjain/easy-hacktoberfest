@@ -70,7 +70,6 @@ function main() {
       min = time
       bestSequence = permutation
     }
-    break
   }
 
   console.log('Best sequence:', bestSequence, 'Time:', min)
