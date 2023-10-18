@@ -1,91 +1,212 @@
-// package main
+package main
 
-// import (
-// 	"fmt"
-// 	"math"
-// 	"time"
-// )
+import (
+	"encoding/csv"
+	// "encoding/json"
+	"fmt"
+	"math"
+	"os"
+	"strconv"
+	"time"
+)
 
-// func generatePermutations(arr []int) [][]int {
-// 	var result [][]int
+type CSVRow struct {
+	ItemId string
+	JobId  string
+	Time   float64
+}
 
-// 	var permute func(arr []int, current []int)
-// 	permute = func(arr []int, current []int) {
-// 		if len(arr) == 0 {
-// 			result = append(result, current)
-// 			return
-// 		}
+type Job struct {
+	Number int
+	JobId  string
+	Time   float64
+}
 
-// 		for i := range arr {
-// 			newArr := make([]int, len(arr))
-// 			copy(newArr, arr)
-// 			item := newArr[i]
-// 			newArr = append(newArr[:i], newArr[i+1:]...)
-// 			permute(newArr, append(current, item))
-// 		}
-// 	}
+type Item struct {
+	Number int
+	ItemId string
+	Jobs   []Job
+}
 
-// 	permute(arr, nil)
+func nextPermutation(arr []int) bool {
+	i := len(arr) - 1
+	for i > 0 && arr[i-1] >= arr[i] {
+		i--
+	}
 
-// 	return result
-// }
+	if i <= 0 {
+		return false
+	}
 
-// func computeTime(sequence []int, items [][]float64) float64 {
-// 	nJobs := len(items[0])
-// 	start := make([]float64, nJobs)
-// 	end := make([]float64, nJobs)
+	j := len(arr) - 1
+	for arr[j] <= arr[i-1] {
+		j--
+	}
 
-// 	for _, itemIndex := range sequence {
-// 		item := items[itemIndex]
+	arr[i-1], arr[j] = arr[j], arr[i-1]
 
-// 		for i := 0; i < nJobs; i++ {
-// 			var prevJobsTotalTime float64
-// 			if i == 0 {
-// 				prevJobsTotalTime = 0
-// 			} else {
-// 				prevJobsTotalTime = end[i-1]
-// 			}
+	j = len(arr) - 1
+	for i < j {
+		arr[i], arr[j] = arr[j], arr[i]
+		i++
+		j--
+	}
 
-// 			currentJobTime := item[i]
+	return true
+}
 
-// 			start[i] = math.Max(prevJobsTotalTime, end[i])
-// 			end[i] = start[i] + currentJobTime
-// 		}
-// 	}
+func computeTime(sequence []int, items [][]float64) float64 {
+	nJobs := len(items[0])
+	start := make([]float64, nJobs)
+	end := make([]float64, nJobs)
 
-// 	return end[nJobs-1]
-// }
+	for _, itemIndex := range sequence {
+		item := items[itemIndex]
 
-// func main() {
-// 	startTime := time.Now()
-// 	items := [][]float64{
-// 		{0.23, 0.19, 0.19, 0.19, 1, 0.35},
-// 		{0.35, 0.29, 0.29, 0.1, 1, 0.53},
-// 	}
+		for i := 0; i < nJobs; i++ {
+			var prevJobsTotalTime float64
+			if i == 0 {
+				prevJobsTotalTime = 0
+			} else {
+				prevJobsTotalTime = end[i-1]
+			}
 
-// 	deadline := 7.0
-// 	assembly := 1.0
-// 	deadlineBeforeAssembly := deadline - assembly
+			currentJobTime := item[i]
 
-// 	var min float64 = math.Inf(1)
-// 	var bestSequence []int
+			start[i] = math.Max(prevJobsTotalTime, end[i])
+			end[i] = start[i] + currentJobTime
+		}
+	}
 
-// 	sequence := []int{0, 1}
-// 	allPermutations := generatePermutations(sequence)
+	return end[nJobs-1]
+}
 
-// 	fmt.Println("Total permutations =>", len(allPermutations))
+func main() {
+	startTime := time.Now()
 
-// 	for _, permutation := range allPermutations {
-// 		time := computeTime(permutation, items)
-// 		fmt.Println("Time for sequence", permutation, "=>", time)
-// 		if time < min {
-// 			min = time
-// 			bestSequence = permutation
-// 		}
-// 	}
+	csvFile, err := os.Open("data.csv")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	defer csvFile.Close()
 
-// 	fmt.Println("Best sequence:", bestSequence, "Time:", min)
-// 	fmt.Println("Start Date:", math.Floor(deadlineBeforeAssembly-min))
-// 	elapsed := time.Since(startTime)
-// 	fmt.Println("Execution time:", elapsed)
-// }
+	reader := csv.NewReader(csvFile)
+
+	records, err := reader.ReadAll()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	var csvRows []CSVRow
+
+	itemIdToIndexMap := make(map[string]int)
+	jobIdToIndexMap := make(map[string]int)
+
+	itemsCount := 0
+	jobsCount := 0
+
+	for i, record := range records {
+		if i == 0 {
+			continue
+		}
+
+		if len(record) != 3 {
+			fmt.Println("Skipping invalid record:", record)
+			continue
+		}
+
+		time, err := strconv.ParseFloat(record[2], 64)
+		if err != nil {
+			fmt.Println("Skipping invalid record:", record)
+			continue
+		}
+
+		obj := CSVRow{
+			ItemId: record[0],
+			JobId:  record[1],
+			Time:   time,
+		}
+
+		if _, ok := itemIdToIndexMap[obj.ItemId]; !ok {
+			itemIdToIndexMap[obj.ItemId] = itemsCount
+			itemsCount++
+		}
+
+		if _, ok := jobIdToIndexMap[obj.JobId]; !ok {
+			jobIdToIndexMap[obj.JobId] = jobsCount
+			jobsCount++
+		}
+
+		csvRows = append(csvRows, obj)
+	}
+
+	fmt.Println("Total Unique Items:", itemsCount)
+	fmt.Println("Total Unique Jobs:", jobsCount)
+
+	finalItems := make([]Item, (itemsCount))
+
+	for _, obj := range csvRows {
+		itemIndex := itemIdToIndexMap[obj.ItemId]
+
+		finalItems[itemIndex].Number = itemIndex
+		finalItems[itemIndex].ItemId = obj.ItemId
+
+		for len(finalItems[itemIndex].Jobs) < jobsCount {
+			finalItems[itemIndex].Jobs = append(finalItems[itemIndex].Jobs, Job{})
+		}
+
+		jobIndex := jobIdToIndexMap[obj.JobId]
+
+		finalItems[itemIndex].Jobs[jobIndex].Number = jobIndex
+		finalItems[itemIndex].Jobs[jobIndex].JobId = obj.JobId
+		finalItems[itemIndex].Jobs[jobIndex].Time = obj.Time
+	}
+
+	// jsonBytes, _ := json.MarshalIndent(finalItems, "", "  ")
+	// _ = os.WriteFile("test.json", jsonBytes, 0644)
+
+	items := make([][]float64, itemsCount)
+
+	for _, record := range finalItems {
+
+		items[record.Number] = make([]float64, jobsCount)
+
+		for _, job := range record.Jobs {
+			items[record.Number][job.Number] = job.Time
+		}
+	}
+
+	deadline := 15.0
+
+	var minTime float64 = math.Inf(1)
+	var bestSequence []int
+
+	sequence := make([]int, itemsCount)
+	for i := range sequence {
+		sequence[i] = i
+	}
+
+	totalPermutations := 1
+	for {
+		currentTime := computeTime(sequence, items)
+		if currentTime < minTime {
+			minTime = currentTime
+			bestSequence = make([]int, itemsCount)
+			copy(bestSequence, sequence)
+		}
+		if !nextPermutation(sequence) {
+			break
+		}
+		totalPermutations++
+	}
+
+	fmt.Println("Total permutations =>", totalPermutations)
+
+	fmt.Println("Best sequence:", bestSequence, "Time:", minTime)
+	fmt.Println("Start Date:", math.Floor(deadline-minTime))
+
+	elapsed := time.Since(startTime)
+	fmt.Println("Execution time:", elapsed)
+}
