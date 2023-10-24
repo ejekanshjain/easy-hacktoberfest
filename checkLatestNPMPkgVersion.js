@@ -72,7 +72,7 @@ async function main() {
   for (let i = 0; i < deps.length; i++) {
     console.log({ i })
     const dep = deps[i]
-    const keys = Object.keys(dep).sort()
+    const keys = Object.keys(dep)
     const newDep = {}
     newDeps.push(newDep)
     await eachOfLimit(keys, 10, async (key, j) => {
