@@ -72,9 +72,8 @@ async function main() {
   for (let i = 0; i < deps.length; i++) {
     console.log({ i })
     const dep = deps[i]
-    const keys = Object.keys(dep)
-    const newDep = {}
-    newDeps.push(newDep)
+    const keys = Object.keys(dep).sort
+    const tempDep = {}
     await eachOfLimit(keys, 10, async (key, j) => {
       console.log({ i, j })
       const val = dep[key]
@@ -82,9 +81,9 @@ async function main() {
 
       if (cache[key]) {
         if (f === '^' || f === '~') {
-          newDep[key] = f + cache[key]
+          tempDep[key] = f + cache[key]
         } else {
-          newDep[key] = cache[key]
+          tempDep[key] = cache[key]
         }
         return
       }
@@ -93,14 +92,17 @@ async function main() {
       const json = await res.json()
       const latest = json['dist-tags'].latest
       if (f === '^' || f === '~') {
-        newDep[key] = f + latest
+        tempDep[key] = f + latest
       } else {
-        newDep[key] = latest
+        tempDep[key] = latest
       }
       if (!cache[key]) {
         cache[key] = latest
       }
     })
+    const newDep = {}
+    for (const key of keys) newDep = tempDep[key]
+    newDeps.push(newDep)
   }
 
   console.log(JSON.stringify(newDeps))
