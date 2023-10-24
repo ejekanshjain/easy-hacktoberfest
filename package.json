@@ -1,0 +1,15 @@
+{
+  "name": "easy-hacktoberfest",
+  "version": "1.0.0",
+  "description": "### Add any of your greatest work or some cool stuff Fork  =>  Clone  =>  Work  =>  Push  =>  Pull Request it!",
+  "main": "checkLatestNPMPkgVersion.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^3.2.4"
+  }
+}
