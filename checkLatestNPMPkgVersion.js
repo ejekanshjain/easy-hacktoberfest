@@ -101,7 +101,7 @@ async function main() {
       }
     })
     const newDep = {}
-    for (const key of keys) newDep = tempDep[key]
+    for (const key of keys) newDep[key] = tempDep[key]
     newDeps.push(newDep)
   }
 
