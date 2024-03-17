@@ -10,6 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "async": "^3.2.4"
+    "async": "^3.2.5"
   }
 }
